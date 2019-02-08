@@ -17,6 +17,7 @@
 //!
 //! TREZOR compatible mnemonic in english
 //!
+//!
 use bip39::{Language, Mnemonic as BIP39_Mnemonic, MnemonicType};
 use crypto::aes;
 use crypto::blockmodes;
@@ -52,16 +53,21 @@ impl Mnemonic {
         Mnemonic::mnemonic(decrypted.as_slice())
     }
 
-    pub fn from_phrase(s: &String, lang: Language) -> Result<Mnemonic, WalletError> {
-        let mnemonic = match BIP39_Mnemonic::from_phrase(s.as_ref(), lang) {
+    pub fn from_phrase(
+        s: &str,
+        word_list: [&'static str; 2048],
+        lang: Language,
+    ) -> Result<Mnemonic, WalletError> {
+        let mnemonic = match BIP39_Mnemonic::from_phrase(s, lang) {
             Ok(m) => m,
             Err(_) => return Err(WalletError::Generic("Failed to get mnemonic from phrase.")),
         };
+
         let mut vec_phrase = Vec::new();
+
         for word in mnemonic.phrase().split(' ') {
-            //TODO: match language to different word lists
-            if let Ok(idx) = WORDS.binary_search(&word) {
-                vec_phrase.push(WORDS[idx]);
+            if let Ok(idx) = word_list.binary_search(&word) {
+                vec_phrase.push(word_list[idx]);
             } else {
                 return Err(WalletError::Generic("Mneminic contains an unknown word"));
             }
