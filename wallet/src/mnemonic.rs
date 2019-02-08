@@ -52,15 +52,19 @@ impl Mnemonic {
         Mnemonic::mnemonic(decrypted.as_slice())
     }
 
-    pub fn from_phrase(s: &str, lang: Language) -> Result<Mnemonic, WalletError> {
-        let mnemonic = match BIP39_Mnemonic::from_phrase(s, lang) {
+    pub fn from_phrase(s: &String, lang: Language) -> Result<Mnemonic, WalletError> {
+        let mnemonic = match BIP39_Mnemonic::from_phrase(s.as_ref(), lang) {
             Ok(m) => m,
             Err(_) => return Err(WalletError::Generic("Failed to get mnemonic from phrase.")),
         };
         let mut vec_phrase = Vec::new();
-        let mut m_iter = String::from(mnemonic.phrase()).split(' ');
-        while let Some(word) = m_iter.next() {
-            vec_phrase.push(word);
+        for word in mnemonic.phrase().split(' ') {
+            //TODO: match language to different word lists
+            if let Ok(idx) = WORDS.binary_search(&word) {
+                vec_phrase.push(WORDS[idx]);
+            } else {
+                return Err(WalletError::Generic("Mneminic contains an unknown word"));
+            }
         }
         Ok(Mnemonic(vec_phrase))
     }
