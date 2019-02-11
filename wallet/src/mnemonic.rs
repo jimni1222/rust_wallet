@@ -55,7 +55,7 @@ impl Mnemonic {
 
     pub fn from_phrase(
         s: &str,
-        word_list: [&'static str; 2048],
+        word_list: Vec<&'static str>,
         lang: Language,
     ) -> Result<Mnemonic, WalletError> {
         let mnemonic = match BIP39_Mnemonic::from_phrase(s, lang) {
