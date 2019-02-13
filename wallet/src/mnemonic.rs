@@ -53,11 +53,7 @@ impl Mnemonic {
         Mnemonic::mnemonic(decrypted.as_slice())
     }
 
-    pub fn from_phrase(
-        s: &str,
-        word_list: Vec<&'static str>,
-        language: &str,
-    ) -> Result<Mnemonic, WalletError> {
+    pub fn from_phrase(s: &str, language: &str) -> Result<Mnemonic, WalletError> {
         let lang = Mnemonic::get_language(language.to_string());
         let mnemonic = match BIP39_Mnemonic::from_phrase(s, lang) {
             Ok(m) => m,
@@ -65,7 +61,7 @@ impl Mnemonic {
         };
 
         let mut vec_phrase = Vec::new();
-
+        let word_list = lang.wordlist().get_word_list();
         for word in mnemonic.phrase().split(' ') {
             if let Ok(idx) = word_list.binary_search(&word) {
                 vec_phrase.push(word_list[idx]);
