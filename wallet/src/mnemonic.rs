@@ -56,8 +56,9 @@ impl Mnemonic {
     pub fn from_phrase(
         s: &str,
         word_list: Vec<&'static str>,
-        lang: Language,
+        language: &str,
     ) -> Result<Mnemonic, WalletError> {
+        let lang = Mnemonic::get_language(language.to_string());
         let mnemonic = match BIP39_Mnemonic::from_phrase(s, lang) {
             Ok(m) => m,
             Err(_) => return Err(WalletError::Generic("Failed to get mnemonic from phrase.")),
@@ -91,6 +92,20 @@ impl Mnemonic {
             }
         }
         Ok(Mnemonic(mnemonic))
+    }
+
+    pub fn get_random_phrase(language: &str, word_length: usize) -> Result<String, WalletError> {
+        let lang = Mnemonic::get_language(language.to_string());
+        let mnemonic_type = match MnemonicType::for_word_count(word_length) {
+            Ok(mt) => mt,
+            Err(_) => {
+                return Err(WalletError::Generic("Failed to get mnemonic type."));
+            }
+        };
+
+        let mnemonic = BIP39_Mnemonic::new(mnemonic_type, lang);
+        let phrase: &str = mnemonic.phrase();
+        Ok(phrase.to_string())
     }
 
     // create a mnemonic for some data
@@ -127,6 +142,22 @@ impl Mnemonic {
             memo.push(WORDS[idx]);
         }
         Ok(Mnemonic(memo))
+    }
+
+    fn get_language(lang: String) -> Language {
+        match lang.to_lowercase().as_str() {
+            "english" => return Language::English,
+            "korean" => return Language::Korean,
+            "chinese_simplified" => return Language::ChineseSimplified,
+            "chinesesimplified" => return Language::ChineseSimplified,
+            "chinese_traditional" => return Language::ChineseTraditional,
+            "chinesetraditional" => return Language::ChineseTraditional,
+            "japanese" => return Language::Japanese,
+            "french" => return Language::French,
+            "spanish" => return Language::Spanish,
+            "italian" => return Language::Italian,
+            _ => return Language::English,
+        }
     }
 }
 
